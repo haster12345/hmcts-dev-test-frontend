@@ -21,22 +21,15 @@ export default function get_tasks (app: Application): void {
   });
 }
 
-
 // export function post_task (app: Application): void {
-//   app.post('/', async(req, res)  => {
+//   app.post('/create-task', async(req, res)  => {
 //     try {
+//       console.log('Recieved body:', req.body);
 //       const response = await axios(
 //         {
 //           method: 'post',
 //           url : 'http://127.0.0.1:5000/tasks',
-//           data : {
-//             'description': 'task2',
-//             'CreatedDate': '26/04/2025',
-//             'id': 2,
-//             'status': 'incomplete',
-//             'CaseNumber': 1,
-//             'title': 'task2',
-//           }
+//           data: req.body
 //         }
 //       );
 //       console.log(response.status);
@@ -46,4 +39,4 @@ export default function get_tasks (app: Application): void {
 //     }
 //   });
 // }
-
+//

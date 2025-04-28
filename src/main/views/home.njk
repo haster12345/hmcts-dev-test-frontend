@@ -3,15 +3,9 @@
 
 {% extends "template.njk" %}
 
-<!-- You may want to make further use of these components: https://design-system.service.gov.uk/components/
-but ultimately it is up to you -->
-
 {% block content %}
   <h1 class="govuk-heading-xl">Tasks</h1>
 
-  <!-- The freedom is yours. You can design the solution however you like, however there is a starting point provided
-  to ensure you have both services running. You may want to make use of the Gov UK Components:
-  https://design-system.service.gov.uk/components/ to add tabs and so forth :) -->
   <style>
     #myForm {
       max-height: 0;
@@ -20,19 +14,15 @@ but ultimately it is up to you -->
     }
 
     #myForm.show {
-      max-height: 500px;
+      max-height: 600px;
     }
   </style>
 
-{#  <button id="showTaskForm" class="govuk-button" data-module="govuk">Add new task</button>#}
   <button type="button" class="govuk-button" data-module="govuk-button" name="create_task" id="create_task">
     Add new task
   </button>
   <fieldset class="govuk-fieldset" id="myForm">
     <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-      <h1 class="govuk-fieldset__heading">
-        New Task
-      </h1>
     </legend>
     <div class="govuk-form-group">
       <label class="govuk-label" for="task-id">
@@ -58,6 +48,12 @@ but ultimately it is up to you -->
       </label>
       <input class="govuk-input" id="description" name="Description" type="text">
     </div>
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="description">
+        Status
+      </label>
+      <input class="govuk-input" id="task-status" name="task-status" type="text">
+    </div>
     <button type="button" class="govuk-button" data-module="govuk-button" name="create_task" id="create_task-confirm">
       Confirm
     </button>
@@ -66,26 +62,87 @@ but ultimately it is up to you -->
   <script>
     const show_form_button = document.getElementById("create_task");
     const form = document.getElementById("myForm");
+    const submit_form = document.getElementById("create_task-confirm");
 
     show_form_button.addEventListener("click", function() {
       form.classList.toggle("show");
       });
+
+    submit_form.addEventListener("click", function() {
+      const task_id = document.getElementById("task-id").value;
+      const casenum = document.getElementById("case-number").value;
+      const title = document.getElementById("title").value;
+      const desc = document.getElementById("description").value;
+      const status = document.getElementById("task-status").value;
+
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
+
+      today = dd + '/' + mm + '/' + yyyy;
+
+      // Simple validation
+      if (!task_id) {
+        alert("Please enter a task_id.");
+        return;
+      }
+
+      console.log("Creating task:", { task_id, casenum, title, desc, status, today });
+
+      fetch("http://127.0.0.1:5000/create-task", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(
+          {
+            id: task_id,
+            CaseNumber: casenum,
+            title: title,
+            description: desc,
+            status:status,
+            CreatedDate:today
+          }
+        )
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log("Success:", data);
+          form.classList.remove("show"); // Hide the form after submission
+          window.location.reload();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    });
   </script>
 
-  {%  for task in example %}
-    {% if task.id %}
+  <div id="task-list">
 
-      {{ govukSummaryList({
-        rows: [
-          {
-            key: {
+    {%  for task in example %}
+      {% if task.id %}
+
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
               text: "ID"
             },
-            value: {
+              value: {
               text: task.id
             },
-            actions: {
+              actions: {
               items: [
+                {
+                  href: "#",
+                  text: "Delete",
+                  visuallyHiddenText: "Delete description",
+                  attributes: {
+                  "data-task-id": task.id,
+                  class: "delete-task-button"
+                }
+                },
                 {
                   href: "#",
                   text: "Change",
@@ -93,15 +150,15 @@ but ultimately it is up to you -->
                 }
               ]
             }
-          },
-          {
-            key: {
+            },
+            {
+              key: {
               text: "Case Number"
             },
-            value: {
+              value: {
               text: task.caseNumber
             },
-            actions: {
+              actions: {
               items: [
                 {
                   href: "#",
@@ -110,15 +167,15 @@ but ultimately it is up to you -->
                 }
               ]
             }
-          },
-          {
-            key: {
+            },
+            {
+              key: {
               text: "Title"
             },
-            value: {
+              value: {
               html: task.title
             },
-            actions: {
+              actions: {
               items: [
                 {
                   href: "#",
@@ -127,59 +184,115 @@ but ultimately it is up to you -->
                 }
               ]
             }
-          },
-          {
-            key: {
+            },
+            {
+              key: {
               text: "Description"
             },
-            value: {
+              value: {
               html: task.description
             },
-            actions: {
+              actions: {
               items: [
-                 {
-                   href: "#",
-                   text: "Delete",
-                   visuallyHiddenText: "Delete description"
-                 },
-                 {
-                   href: "#",
-                   text: "Change",
-                   visuallyHiddenText: "Change description"
-                 }
+                {
+                  href: "#",
+                  text: "Delete",
+                  visuallyHiddenText: "Delete description"
+                },
+                {
+                  href: "#",
+                  text: "Change",
+                  visuallyHiddenText: "Change description"
+                }
               ]
             }
-          },
-          {
-            key: {
+            },
+            {
+              key: {
               text: "Status"
             },
-            value: {
+              value: {
               html: task.status
             },
-            actions: {
+              actions: {
               items: [
               ]
             }
-          },
-          {
-            key: {
-             text: "Created Date"
             },
-            value: {
-             html: task.createdDate
+            {
+              key: {
+              text: "Created Date"
             },
-            actions: {
-             items: [
-             ]
+              value: {
+              html: task.createdDate
+            },
+              actions: {
+              items: [
+              ]
+            }
+            }
+          ]
+        }) }}
+
+      {% else %}
+        Did not get task id
+      {% endif %}
+
+    {% endfor %}
+
+  </div>
+
+  <script>
+    // Ensure script runs both on document load and after any dynamic content updates
+    function initializeDeleteButtons() {
+      const deleteButtons = document.querySelectorAll('.delete-task-button');
+
+      deleteButtons.forEach(button => {
+        // Remove previous event listeners to prevent duplicates
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+
+        newButton.addEventListener('click', async function(event) {
+          event.preventDefault();
+          const taskId = this.getAttribute('data-task-id');
+
+          if (!taskId) {
+            console.error('No task ID found');
+            return;
+          }
+
+          // Confirm deletion
+          if (confirm('Are you sure you want to delete this task?')) {
+            try {
+              const response = await fetch(`http://127.0.0.1:5000/delete-task/${taskId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              if (response.ok) {
+                console.log('Task deleted successfully');
+                window.location.reload();
+              } else {
+                console.error('Failed to delete task:', response.statusText);
+                alert('Failed to delete task. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error deleting task:', error);
+              alert('Error deleting task. Please check your connection.');
             }
           }
-        ]
-      }) }}
-      {% else %}
-      Did not get task id
-    {% endif %}
+        });
+      });
+    }
 
-  {% endfor %}
+    // Run on initial page load
+    document.addEventListener('DOMContentLoaded', initializeDeleteButtons);
 
+    // If you're using any framework that might render content dynamically,
+    // call initializeDeleteButtons() after content updates
+
+  </script>
 {% endblock %}
+
